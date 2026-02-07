@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
+import { Session } from '../session/session.entity';
 
 @Entity('users')
 export class User {
@@ -30,6 +32,9 @@ export class User {
 
   @Column({ default: false })
   blocked: boolean;
+
+  @OneToMany(() => Session, (session) => session.user, { cascade: true })
+  sessions: Session[];
 
   @CreateDateColumn()
   createdAt: Date;

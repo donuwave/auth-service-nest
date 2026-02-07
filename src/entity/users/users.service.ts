@@ -70,6 +70,18 @@ export class UsersService {
     return user;
   }
 
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователя не существует');
+    }
+
+    return user;
+  }
+
   async delete(id: string): Promise<User> {
     const user = this.findOne(id);
 

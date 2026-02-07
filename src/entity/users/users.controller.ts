@@ -6,20 +6,31 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { User } from './users.entity';
 import { CreateUserDto } from './dto/create.dto';
 import { UUIDPipe } from '../../pipes/uuid.pipe';
 import { UpdateUserDto } from './dto/update.dto';
 import { ChangePasswordDto } from './dto/updatePassword.dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
+@ApiTags('Users')
+@ApiBearerAuth('jwt')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Получение всех пользователей' })
   @ApiResponse({ status: 200, description: 'Список пользователей' })
   @ApiResponse({ status: 404, description: 'Список пользователей пуст' })

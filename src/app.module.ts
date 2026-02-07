@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from './config/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './entity/users/users.module';
+import { SessionModule } from './entity/session/session.module';
+import { AuthModule } from './entity/auth/auth.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { UsersModule } from './entity/users/users.module';
     }),
     DatabaseModule,
     UsersModule,
+    SessionModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
