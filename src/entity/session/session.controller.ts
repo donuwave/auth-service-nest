@@ -20,6 +20,8 @@ import { UUIDPipe } from '../../pipes/uuid.pipe';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { JwtPayload } from '../auth/types/jwt-payload.types';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
 
 @ApiTags('Session')
 @ApiBearerAuth('jwt')
@@ -28,6 +30,8 @@ export class SessionController {
   constructor(private readonly sessionService: SessionService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Создание сессии пользователя' })
   @ApiResponse({ status: 201, description: 'Сессия успешно создана' })
   @ApiResponse({ status: 400, description: 'Невалидные данные' })
@@ -37,7 +41,8 @@ export class SessionController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'moderator', 'user')
   @ApiOperation({
     summary: 'Получение всех активных сессий текущего пользователя',
   })

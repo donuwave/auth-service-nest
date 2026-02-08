@@ -22,6 +22,8 @@ import { UUIDPipe } from '../../pipes/uuid.pipe';
 import { UpdateUserDto } from './dto/update.dto';
 import { ChangePasswordDto } from './dto/updatePassword.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
 
 @ApiTags('Users')
 @ApiBearerAuth('jwt')
@@ -30,7 +32,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'moderator')
   @ApiOperation({ summary: 'Получение всех пользователей' })
   @ApiResponse({ status: 200, description: 'Список пользователей' })
   @ApiResponse({ status: 404, description: 'Список пользователей пуст' })
@@ -48,6 +51,8 @@ export class UsersController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'moderator')
   @ApiOperation({ summary: 'Создание пользователей' })
   @ApiResponse({ status: 201, description: 'Пользователь создан успешно' })
   async create(@Body() createdUser: CreateUserDto): Promise<User> {

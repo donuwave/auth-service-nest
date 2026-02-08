@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Session } from '../session/session.entity';
+import { Role } from '../role/role.entity';
 
 @Entity('users')
 export class User {
@@ -32,6 +34,13 @@ export class User {
 
   @Column({ default: false })
   blocked: boolean;
+
+  @Column({ type: 'uuid', nullable: true })
+  @Index()
+  roleId?: string;
+
+  @ManyToOne(() => Role, (role) => role.users, { onDelete: 'SET NULL' })
+  role?: Role;
 
   @OneToMany(() => Session, (session) => session.user, { cascade: true })
   sessions: Session[];

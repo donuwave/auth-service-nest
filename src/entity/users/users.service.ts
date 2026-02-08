@@ -54,6 +54,7 @@ export class UsersService {
         'createdAt',
         'updatedAt',
       ],
+      relations: ['role'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -61,6 +62,7 @@ export class UsersService {
   async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
+      relations: ['role'],
     });
 
     if (!user) {
@@ -114,6 +116,10 @@ export class UsersService {
 
     user.password = await bcrypt.hash(newPassword, 10);
 
+    return await this.usersRepository.save(user);
+  }
+
+  async save(user: User): Promise<User> {
     return await this.usersRepository.save(user);
   }
 }

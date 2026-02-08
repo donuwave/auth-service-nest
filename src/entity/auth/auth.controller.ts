@@ -1,12 +1,21 @@
-import { Controller, Post, Body, Request } from '@nestjs/common';
+import { Controller, Post, Body, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { RefreshTokenDto } from './dto/refresh.dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
+@ApiBearerAuth('jwt')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -40,6 +49,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Обновить токены' })
   @ApiResponse({ status: 200, description: 'Токены успешно обновлены' })
   @ApiResponse({
@@ -52,6 +62,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Выйти из системы' })
   @ApiResponse({ status: 200, description: 'Успешный выход' })
   @ApiResponse({ status: 400, description: 'Невалидный refresh token' })

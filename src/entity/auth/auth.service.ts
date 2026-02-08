@@ -9,6 +9,7 @@ import { JwtPayload } from './types/jwt-payload.types';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { RefreshTokenDto } from './dto/refresh.dto';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +18,18 @@ export class AuthService {
     private configService: ConfigService,
     private usersService: UsersService,
     private sessionsService: SessionService,
+    private roleService: RoleService,
   ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
+
+    // Назначаем роль 'user' по умолчанию
+    const userRole = await this.roleService.findByName('user');
+    if (userRole) {
+      user.role = userRole;
+      await this.usersService.save(user);
+    }
 
     const { accessToken, refreshToken } = await this.loginUser({
       email: user.email,
