@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Request,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
+import type { Response } from 'express';
+import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -9,9 +18,11 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { RefreshTokenDto } from './dto/refresh.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from '../../decorators/current-user.decorator';
+import type { JwtPayload } from './types/jwt-payload.types';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,8 +42,15 @@ export class AuthController {
     description: 'Пользователь с таким email уже существует',
   })
   @ApiBody({ type: RegisterDto })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Request() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userAgent = req.headers['user-agent'] || '';
+    const ipAddress = req.ip || req.connection.remoteAddress || '';
+
+    return this.authService.register(registerDto, userAgent, ipAddress, res);
   }
 
   @Post('login')
@@ -41,24 +59,31 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
   @ApiResponse({ status: 400, description: 'Невалидные данные' })
   @ApiBody({ type: LoginDto })
-  async login(@Body() loginDto: LoginDto, @Request() req: any) {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Request() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const userAgent = req.headers['user-agent'] || '';
     const ipAddress = req.ip || req.connection.remoteAddress || '';
 
-    return this.authService.login(loginDto, userAgent, ipAddress);
+    return this.authService.login(loginDto, userAgent, ipAddress, res);
   }
 
   @Post('refresh')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard, AuthGuard('jwt-refresh'))
   @ApiOperation({ summary: 'Обновить токены' })
   @ApiResponse({ status: 200, description: 'Токены успешно обновлены' })
   @ApiResponse({
     status: 401,
     description: 'Невалидный или просроченный refresh token',
   })
-  @ApiBody({ type: RefreshTokenDto })
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshTokens(refreshTokenDto);
+  async refresh(@CurrentUser() user: JwtPayload) {
+    return this.authService.refreshTokens(
+      user.userId,
+      user.sessionId,
+      user.email,
+    );
   }
 
   @Post('logout')
@@ -77,7 +102,7 @@ export class AuthController {
       },
     },
   })
-  async logout(@Body('refreshToken') refreshToken: string) {
-    return this.authService.logout(refreshToken);
+  async logout(@CurrentUser() user: JwtPayload) {
+    return this.authService.logout(user.userId, user.sessionId);
   }
 }

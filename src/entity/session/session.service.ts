@@ -44,6 +44,7 @@ export class SessionService {
       await this.sessionsRepository.delete(oldestSession.id);
     }
 
+    // Создание сессии с висящим refreshToken
     const session = this.sessionsRepository.create({
       refreshToken: randomUUID(),
       ...createdSession,
@@ -103,6 +104,15 @@ export class SessionService {
 
     session.lastActivityAt = new Date();
     return await this.sessionsRepository.save(session);
+  }
+
+  async updateRefreshToken(
+    sessionId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    const session = await this.findOne(sessionId);
+    session.refreshToken = refreshToken;
+    await this.sessionsRepository.save(session);
   }
 
   //Вытащить функцию в отдельную утилит

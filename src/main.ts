@@ -1,20 +1,32 @@
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerCustomOptions,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { RoleService } from './entity/role/role.service';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Удаляет свойства, не определенные в DTO
-      forbidNonWhitelisted: true, // Выбрасывает ошибку, если есть неизвестные свойства
-      transform: true, // Автоматически преобразует типы
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
+
+  app.use(cookieParser());
 
   const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 3000;
@@ -36,10 +48,28 @@ async function bootstrap() {
       },
       'jwt',
     )
+    .addCookieAuth('refreshToken', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'refreshToken',
+      description: 'Refresh token for obtaining new access tokens',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+
+  const customOptions: SwaggerCustomOptions = {
+    swaggerOptions: {
+      persistAuthorization: true,
+      withCredentials: true,
+      cookies: {
+        enabled: true,
+      },
+    },
+    customSiteTitle: 'Auth Service API Docs',
+  };
+
+  SwaggerModule.setup('api', app, document, customOptions);
 
   await app.listen(port);
 }

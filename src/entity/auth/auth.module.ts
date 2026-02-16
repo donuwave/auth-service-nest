@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { SessionModule } from '../session/session.module';
 import { JwtStrategy } from './auth.jwt-strategy';
 import { RoleModule } from '../role/role.module';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -19,16 +20,16 @@ import { RoleModule } from '../role/role.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.get('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_EXPIRATION') || '3600s',
+          expiresIn: configService.get('JWT_ACCESS_EXPIRATION') || '3600s',
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

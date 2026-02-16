@@ -5,8 +5,3 @@ export interface LoginUser {
   ipAddress: string;
   deviceInfo: string;
 }
-
-export interface LoginUserResponse {
-  accessToken: string;
-  refreshToken: string;
-}

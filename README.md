@@ -39,8 +39,8 @@ NODE_ENV=local
 PORT=9000
 
 # JWT
-JWT_SECRET=local_super_secret_change_in_production
-JWT_EXPIRATION=3600
+JWT_ACCESS_SECRET=local_super_secret_change_in_production
+JWT_ACCESS_EXPIRATION=3600
 ```
 
 🌱 Dev окружение (докер)
